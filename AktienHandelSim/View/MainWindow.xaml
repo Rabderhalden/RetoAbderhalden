@@ -1,0 +1,148 @@
+﻿<Window x:Class="AktienHandelSim.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AktienHandelSim"
+        xmlns:viewModel="clr-namespace:AktienHandelSim.ViewModel"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="700" Width="1000" Background="CadetBlue">
+    <Window.DataContext>
+        <!-- Deklarativ ein BookViewModel instanziieren und den DataContext setzen -->
+        <viewModel:MainViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="6*"/>
+            <ColumnDefinition Width="6*"/>
+            <ColumnDefinition Width="6*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="8*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="4*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Column="1" Grid.Row="1" Background="Aqua" Margin="5,5,5,5">
+            <Label Content="MEINE AKTIEN:" FontWeight="Bold" FontStyle="Oblique"/>
+            <ListView ItemsSource="{Binding AktienUebersicht}" SelectedItem="{Binding SelectedAktie}" x:Name="Aktienliste" Height="230" Margin="5,5,5,5">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="{Binding Abkuerzung}" FontWeight="Bold" />
+                            <Label Content="{Binding AktuellerKurs}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Margin="2,2,2,2">
+                    <Label Content="KAUFWERT:"/>
+                    <TextBox IsReadOnly="True" Text="{Binding GesamtWert}" TextAlignment="Right"></TextBox>
+                    <Label Content="CHF" HorizontalAlignment="Right"/>
+                </StackPanel>
+                <StackPanel Margin="2,2,2,2">
+                    <Label Content="AKT.WERT:"/>
+                    <TextBox IsReadOnly="True" Text="{Binding AktuellerWert}" TextAlignment="Right"></TextBox>
+                    <Label Content="CHF" HorizontalAlignment="Right"/>
+                </StackPanel>
+                <StackPanel Margin="2,2,2,2">
+                    <Label Content="DIFFERENZ:"/>
+                    <TextBox IsReadOnly="True" Text="{Binding Differenz}" Background="{Binding ProfitLossColour}" TextAlignment="Right"></TextBox>
+                    <Label Content="CHF" HorizontalAlignment="Right"/>
+                </StackPanel>
+                <StackPanel Margin="2,2,2,2">
+                    <Label Content="IN %:"/>
+                    <TextBox IsReadOnly="True" Text="{Binding AbweichungProzent}" TextAlignment="Right" Background="{Binding ProfitLossColour}"></TextBox>
+                    <Label Content="%" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Grid.Row="1" Background="Aqua" Margin="5,5,5,5">
+            <Label Content="DETAILS:" FontWeight="Bold" FontStyle="Oblique" />
+            <StackPanel Orientation="Horizontal">
+                <Label Content="ABKÜRZUNG:" Width="80"/>
+                <TextBox Text="{Binding ElementName=Aktienliste, Path=SelectedItem.Abkuerzung}" Width="120" TextAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="NAME:" Width="80"/>
+                <TextBox Text="{Binding ElementName=Aktienliste, Path=SelectedItem.Firmenname}" Width="120" TextAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="KAUFKURS:" Width="80"/>
+                <TextBox Text="{Binding ElementName=Aktienliste, Path=SelectedItem.Kaufkurs}" Width="120" TextAlignment="Center"/>
+                <Label Content="CHF"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="AKT. KURS:" Width="80"/>
+                <TextBox Text="{Binding ElementName=Aktienliste, Path=SelectedItem.AktuellerKurs}" Width="120" TextAlignment="Center"/>
+                <Label Content="CHF"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="ANZAHL:" Width="80"/>
+                <TextBox Text="{Binding ElementName=Aktienliste, Path=SelectedItem.AnzahlGekauft}" Width="120" TextAlignment="Center"/>
+                <Label Content="STK."></Label>
+            </StackPanel>
+
+            <StackPanel Background="Blue" Margin="5,20,5,5">
+                <Label Content="VERKAUF:" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="ANZAHL:" Width="80"/>
+                    <TextBox Width="120" Text="{Binding VerkaufenAnzahl}" TextAlignment="Center"/>
+                </StackPanel>
+                <Button Content="JETZT VERKAUFEN" FontWeight="Bold" Command="{Binding AktieVerkaufen}" Margin="5,5,5,5"/>
+            </StackPanel>
+
+        </StackPanel>
+
+        <StackPanel Grid.Column="3" Grid.Row="1" Background="Aqua" Margin="5,5,5,5">
+            <StackPanel Orientation="Horizontal">
+                <Label Content="DATUM-ZEIT:" Margin="5,5,10,5" FontWeight="Bold" FontStyle="Oblique"/>
+                <Label Content="AKTUELLER WERT:" Margin="5,5,30,5" FontWeight="Bold" FontStyle="Oblique"/>
+            </StackPanel>
+            <ListView ItemsSource="{Binding ElementName=Aktienliste, Path=SelectedItem.HystoryList}" Height="220" Margin="5,5,5,5">
+
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="{Binding Path=Datum}" FontWeight="Bold" />
+                            <Label Content="{Binding Path=AktuellerWert}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal">
+            <CheckBox Content="Run"
+                      x:Name="CheckBoxRun"
+                      Command="{Binding SwitchRun}"
+                      IsChecked="True"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="3" Background="Blue">
+            <Label Content="Aktien Kaufen:" FontWeight="Bold"/>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Abkuerzung:" Width="80"></Label>
+                <TextBox Width="110" Text="{Binding KaufenAbkuerzung}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Name:" Width="80"></Label>
+                <TextBox Width="110" Text="{Binding KaufenFirmenname}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Kaufwert:" Width="80"></Label>
+                <TextBox Width="110" Text="{Binding KaufenKurs}" TextAlignment="Center"/>
+                <Label Content="CHF"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Anzahl:" Width="80"/>
+                <TextBox Width="110" Text="{Binding KaufenAnzahl}" TextAlignment="Center"/>
+                <Label Content="STK."></Label>
+            </StackPanel>
+            <Button Content="JETZT KAUFEN" FontWeight="Bold" Command="{Binding AktieKaufen}" Margin="5,5,5,5"/>
+        </StackPanel>
+    </Grid>
+</Window>
