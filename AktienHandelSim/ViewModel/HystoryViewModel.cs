@@ -12,27 +12,22 @@ namespace AktienHandelSim.ViewModel
     public class HystoryViewModel : ObservableObject
     {
         private Hystory _hystory;
-        private double _aktuellerWert;
-
 
         public HystoryViewModel()
         {
             _hystory = new Hystory() { datum = "01.01.1990", aktuellerWert = 500 };
         }
-
         public Hystory Hystory
         {
             get { return _hystory; }
             set { _hystory = value; }
         }
-
         public string Datum
         {
             get
             {
                 return _hystory.datum;
             }
-
             set
             {
                 _hystory.datum = value;
@@ -52,7 +47,5 @@ namespace AktienHandelSim.ViewModel
                 RaisePropertyChanged("AktuellerWert");
             }
         }
-
     }
-
 }

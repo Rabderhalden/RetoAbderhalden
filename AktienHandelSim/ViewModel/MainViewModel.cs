@@ -8,24 +8,82 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace AktienHandelSim.ViewModel
 {
-
     public class MainViewModel : ObservableObject
     {
 
-        public ObservableCollection<AktieViewModel> AktienUebersicht { get; set; }
         private Thread threadCalc;
-        private ObservableCollection<HystoryViewModel> myHystoryViewModels;
-        public string KaufenAbkuerzung { get; set; }
-        public string KaufenFirmenname { get; set; }
-        public double KaufenKurs { get; set; }
-        public int KaufenAnzahl { get; set; }
+
         public AktieViewModel SelectedAktie { get; set; }
 
+        private string verkaufenAnzahl;
+        private string kaufenAbkuerzung;
+        private string kaufenFirmenname;
+        private string kaufenKurs;
+        private string kaufenAnzahl;
+
+        private AktieViewModel _selectedAktieViewModel;
+
         private double gesamtWert;
+        private double aktuellerWert;
+        private double differenz;
+        private double abweichungProzent;
+        private string profitLossColour;
+
+        public ObservableCollection<AktieViewModel> AktienUebersicht { get; set; }
+        public string KaufenAbkuerzung
+        {
+            get
+            { return kaufenAbkuerzung; }
+
+            set
+            {
+                kaufenAbkuerzung = value;
+                RaisePropertyChanged("KaufenAbkuerzung");
+            }
+        }
+        public string KaufenFirmenname
+        {
+            get
+            { return kaufenFirmenname; }
+            set
+            {
+                kaufenFirmenname = value;
+                RaisePropertyChanged("KaufenFirmenname");
+            }
+        }
+        public string KaufenKurs
+        {
+            get { return kaufenKurs; }
+            set
+            {
+                kaufenKurs = value;
+                RaisePropertyChanged("KaufenKurs");
+            }
+        }
+        public string KaufenAnzahl
+        {
+            get { return kaufenAnzahl; }
+            set
+            {
+                kaufenAnzahl = value;
+                RaisePropertyChanged("KaufenAnzahl");
+            }
+        }
+
+        public string VerkaufenAnzahl
+        {
+            get { return verkaufenAnzahl; }
+            set
+            {
+                verkaufenAnzahl = value;
+                RaisePropertyChanged("VerkaufenAnzahl");
+            }
+        }
         public double GesamtWert
         {
             get
@@ -36,30 +94,24 @@ namespace AktienHandelSim.ViewModel
                 RaisePropertyChanged("GesamtWert");
             }
         }
-
-        private double aktuellerWert;
         public double AktuellerWert
         {
-            get { return aktuellerWert;}
+            get { return aktuellerWert; }
             set
             {
                 aktuellerWert = value;
                 RaisePropertyChanged("AktuellerWert");
             }
         }
-
-        private double differenz;
         public double Differenz
         {
-            get { return differenz;}
+            get { return differenz; }
             set
             {
                 differenz = value;
                 RaisePropertyChanged("Differenz");
             }
         }
-
-        private double abweichungProzent;
         public double AbweichungProzent
         {
             get { return abweichungProzent; }
@@ -69,15 +121,27 @@ namespace AktienHandelSim.ViewModel
                 RaisePropertyChanged("AbweichungProzent");
             }
         }
-
-        private string profitLossColour;
         public string ProfitLossColour
         {
-            get { return profitLossColour;}
+            get { return profitLossColour; }
             set
             {
                 profitLossColour = value;
                 RaisePropertyChanged("ProfitLossColour");
+            }
+        }
+        public AktieViewModel SelectedAktieViewModel
+        {
+            get { return _selectedAktieViewModel; }
+            set
+            {
+                if (_selectedAktieViewModel == value)
+                {
+                    return;
+                }
+
+                _selectedAktieViewModel = value;
+                RaisePropertyChanged("SelectedAktieViewModel");
             }
         }
 
@@ -92,23 +156,27 @@ namespace AktienHandelSim.ViewModel
         void SwitchRunExecute()
 
         {
-            //MessageBox.Show("check");
-            if (threadCalc.IsAlive)
+            if (threadCalc != null)
             {
-                threadCalc.Interrupt();
+                if (threadCalc.IsAlive)
+                {
+                    threadCalc.Interrupt();
+                }
+                else
+                {
+                    StartThreadCalcAktienValues();
+                }
             }
             else
             {
                 StartThreadCalcAktienValues();
             }
-
         }
 
         private bool SwitchRunCanExecute()
         {
             return true;
         }
-
 
         #endregion
 
@@ -124,14 +192,40 @@ namespace AktienHandelSim.ViewModel
 
             // AktienVM erstellen und der Observable zuordnen
 
-            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = KaufenAbkuerzung, AktuellerKurs = KaufenKurs, Firmenname = KaufenFirmenname, Kaufkurs = KaufenKurs, AnzahlGekauft = KaufenAnzahl, HystoryList = new List<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = KaufenKurs, Datum = DateTime.Now.ToString() } } });
-            GesamtWert = CalcGesamtWert();
+            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = KaufenAbkuerzung, AktuellerKurs = Double.Parse(KaufenKurs), Firmenname = KaufenFirmenname, Kaufkurs = Double.Parse(KaufenKurs), AnzahlGekauft = Int32.Parse(KaufenAnzahl), HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = Double.Parse(KaufenKurs), Datum = DateTime.Now.ToString() } } });
+            GesamtWert = CalcGesamtWert(AktienUebersicht);
+
+            KaufenAbkuerzung = null;
+            KaufenFirmenname = null;
+            KaufenKurs = null;
+            KaufenAnzahl = null;
 
         }
 
         private bool AktieKaufenCanExecute()
         {
-            return true;
+            bool aktieNotExists = true;
+            foreach (AktieViewModel aktieViewModel in AktienUebersicht)
+            {
+                if (aktieViewModel.Abkuerzung == KaufenAbkuerzung)
+                {
+                    aktieNotExists = false;
+                }
+            }
+
+            // TryParse > schauen,ob Zahlenwert.. Bool benutzen für empty-string
+            int kaufenAnzahl;
+
+            bool successAnzahl = Int32.TryParse(KaufenAnzahl, out kaufenAnzahl);
+
+            double kaufenKurs;
+
+            bool successKurs = Double.TryParse(KaufenKurs, out kaufenKurs);
+
+
+            bool isEmptyOrZero = (KaufenAbkuerzung != String.Empty && KaufenFirmenname != String.Empty &&
+                                  kaufenAnzahl > 0);
+            return (isEmptyOrZero && successAnzahl && successKurs && aktieNotExists);
         }
 
         #endregion
@@ -146,52 +240,74 @@ namespace AktienHandelSim.ViewModel
         void AktieVerkaufenExecute()
 
         {
-            int neueAnzahl = SelectedAktie.AnzahlGekauft - VerkaufenAnzahl;
-
-            foreach (var aktieViewModel in AktienUebersicht)
+            if (SelectedAktieViewModel != null)
             {
-                if (aktieViewModel.Abkuerzung == SelectedAktie.Abkuerzung)
+                int neueAnzahl = SelectedAktieViewModel.AnzahlGekauft - Int32.Parse(VerkaufenAnzahl);
+
+                AktieViewModel currentAktie = new AktieViewModel();
+
+                foreach (var aktieViewModel in AktienUebersicht)
                 {
-                    aktieViewModel.AnzahlGekauft = neueAnzahl;
+                    if (aktieViewModel.Abkuerzung == SelectedAktieViewModel.Abkuerzung)
+                    {
+
+                        if (neueAnzahl <= 0)
+                        {
+                            currentAktie = aktieViewModel;
+                        }
+                        else
+                        {
+
+                            aktieViewModel.AnzahlGekauft = neueAnzahl;
+                        }
+                    }
                 }
+
+                VerkaufenAnzahl = "0";
+
+                if (neueAnzahl <= 0)
+                {
+                    AktienUebersicht.Remove(currentAktie);
+                }
+
+                GesamtWert = CalcGesamtWert(AktienUebersicht);
+
             }
+            else
+            {
 
-            VerkaufenAnzahl = 0;
-            GesamtWert = CalcGesamtWert();
-            // AktienVM erstellen und der Observable zuordnen
-
-            //AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = KaufenAbkuerzung, AktuellerKurs = KaufenKurs, Firmenname = KaufenFirmenname, Kaufkurs = KaufenKurs, AnzahlGekauft = KaufenAnzahl, HystoryList = new List<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = KaufenKurs, Datum = DateTime.Now.ToString() } } });
-
+            }
 
         }
 
         private bool AktieVerkaufenCanExecute()
         {
-            return true;
+
+            int verkaufenAnzahl;
+
+            bool successAnzahl = Int32.TryParse(VerkaufenAnzahl, out verkaufenAnzahl);
+
+
+
+            bool isPositiv = (verkaufenAnzahl > 0);
+
+            return (isPositiv && successAnzahl);
+
         }
 
-        private int verkaufenAnzahl;
-        public int VerkaufenAnzahl
-        {
-            get { return verkaufenAnzahl; }
-            set
-            {
-                verkaufenAnzahl = value;
-                RaisePropertyChanged("VerkaufenAnzahl");
-            }
-        }
+
 
         #endregion
 
         #region Wallet
 
-        double CalcGesamtWert()
+        public static double CalcGesamtWert(ObservableCollection<AktieViewModel> aktieViewModels)
         {
             double wert = 0;
 
-            foreach (AktieViewModel aktieViewModel in AktienUebersicht)
+            foreach (AktieViewModel aktieViewModel in aktieViewModels)
             {
-                wert = wert+(aktieViewModel.Kaufkurs * aktieViewModel.AnzahlGekauft);
+                wert = wert + (aktieViewModel.Kaufkurs * aktieViewModel.AnzahlGekauft);
             }
 
             return wert;
@@ -211,7 +327,7 @@ namespace AktienHandelSim.ViewModel
 
         double CalcDifferenz()
         {
-            return (CalcAktWert()-GesamtWert);
+            return (CalcAktWert() - GesamtWert);
         }
 
         double CalcProzent()
@@ -236,20 +352,22 @@ namespace AktienHandelSim.ViewModel
 
         public MainViewModel()
         {
+
             AktienUebersicht = new ObservableCollection<AktieViewModel>();
 
-
-            //myHystoryViewModels = new ObservableCollection<HystoryViewModel>();
-            //{
-            //    new HystoryViewModel() { AktuellerWert = 500, Datum = "01.01.1990" };
-            //};
+            // Auf "" initialisieren, sonst funktioniert Validierung nicht
+            KaufenAbkuerzung = "";
+            KaufenFirmenname = "";
 
 
-            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = "ABBN", AktuellerKurs = 100, Firmenname = "ABBAlstom", Kaufkurs = 100, AnzahlGekauft = 15, HystoryList = new List<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = 100, Datum = DateTime.Now.ToString() } } });
-            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = "SBBN", AktuellerKurs = 200, Firmenname = "SBB-Firma", Kaufkurs = 200, AnzahlGekauft = 12, HystoryList = new List<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = 200, Datum = DateTime.Now.ToString() } } });
 
-            StartThreadCalcAktienValues();
-            GesamtWert=CalcGesamtWert();
+            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = "ABBN", AktuellerKurs = 100, Firmenname = "ABBAlstom", Kaufkurs = 100, AnzahlGekauft = 15, HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = 100, Datum = DateTime.Now.ToString() } } });
+            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = "SBBN", AktuellerKurs = 200, Firmenname = "SBB-Firma", Kaufkurs = 200, AnzahlGekauft = 12, HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = 200, Datum = DateTime.Now.ToString() } } });
+
+            SelectedAktieViewModel = AktienUebersicht.First();
+
+            //StartThreadCalcAktienValues();
+            GesamtWert = CalcGesamtWert(AktienUebersicht);
             AktuellerWert = CalcAktWert();
             Differenz = CalcDifferenz();
             AbweichungProzent = CalcProzent();
@@ -281,6 +399,8 @@ namespace AktienHandelSim.ViewModel
                         Debug.WriteLine("aktuelle Änderung:");
                         Debug.WriteLine(randomChange.ToString());
 
+                        int anzahlItemInHistory;
+
                         aktieViewModel.AktuellerKurs += randomChange;
                         //Debug.WriteLine(aktieViewModel.AktuellerKurs.ToString());
 
@@ -288,16 +408,28 @@ namespace AktienHandelSim.ViewModel
 
                         HystoryViewModel myHystoryViewModel = new HystoryViewModel() { AktuellerWert = aktieViewModel.AktuellerKurs, Datum = DateTime.Now.ToString() };
 
-                        aktieViewModel.HystoryList.Add(myHystoryViewModel);
+                        //App.Current.Dispatcher.Invoke(() => aktieViewModel.HystoryList.Add(myHystoryViewModel));
+                        App.Current.Dispatcher.Invoke(() => aktieViewModel.HystoryList.Insert(0, myHystoryViewModel));
+
+                        if (aktieViewModel.HystoryList.Count >= 13)
+                        {
+                            App.Current.Dispatcher.Invoke(() => aktieViewModel.HystoryList.RemoveAt(12));
+                        }
+
+                        //aktieViewModel.HystoryList.Add(myHystoryViewModel);
 
 
                         #endregion
                     }
+
+                    GesamtWert = CalcGesamtWert(AktienUebersicht);
                     AktuellerWert = CalcAktWert();
                     Differenz = CalcDifferenz();
                     AbweichungProzent = CalcProzent();
                     ProfitLossColour = ChangeFieldColour();
                     Thread.Sleep(1000);
+
+
 
                 } while (true);
             }
@@ -310,6 +442,4 @@ namespace AktienHandelSim.ViewModel
         #endregion
 
     }
-
-
 }

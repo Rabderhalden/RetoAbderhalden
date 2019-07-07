@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.28307.271
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AktienHandelSim", "AktienHandelSim\AktienHandelSim.csproj", "{ABC1239C-C499-42AA-99D3-81A4DBC90B9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MVVMFramework", "MVVMFramework\MVVMFramework.csproj", "{60708297-38DC-4B4C-8065-C886809A8607}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MVVMFramework", "MVVMFramework\MVVMFramework.csproj", "{60708297-38DC-4B4C-8065-C886809A8607}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestAktienHandelSim", "UnitTestAktienHandelSim\UnitTestAktienHandelSim.csproj", "{389EFEEF-2763-4228-BDCC-8D0D45E3E42A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{60708297-38DC-4B4C-8065-C886809A8607}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60708297-38DC-4B4C-8065-C886809A8607}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60708297-38DC-4B4C-8065-C886809A8607}.Release|Any CPU.Build.0 = Release|Any CPU
+		{389EFEEF-2763-4228-BDCC-8D0D45E3E42A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{389EFEEF-2763-4228-BDCC-8D0D45E3E42A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{389EFEEF-2763-4228-BDCC-8D0D45E3E42A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{389EFEEF-2763-4228-BDCC-8D0D45E3E42A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
