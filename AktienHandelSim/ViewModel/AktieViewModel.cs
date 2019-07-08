@@ -25,10 +25,10 @@ namespace AktienHandelSim.ViewModel
             myCurrentHystory.Datum = DateTime.Now.Date.ToString();
 
 
-            aktie = new Aktie(); /*{ abkuerzung = "Unbekannt", aktuellerKurs = 0, firmenname = "Unbekannt", kaufKurs = 0,hystoryList=HystoryList };*/
+            aktie = new Aktie(); 
             historyList = new ObservableCollection<HystoryViewModel>(){ myCurrentHystory };
 
-            //aktie.hystoryList = historyList;
+         
             aktie.abkuerzung = "Unbekannt";
             aktie.firmenname = "Unbekannt";
             aktie.kaufKurs = 500;

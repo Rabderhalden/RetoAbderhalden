@@ -8,14 +8,15 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using AktienHandelSim.Validations;
 
 namespace AktienHandelSim.ViewModel
 {
     public class MainViewModel : ObservableObject
     {
-
         private Thread threadCalc;
 
         public AktieViewModel SelectedAktie { get; set; }
@@ -26,7 +27,9 @@ namespace AktienHandelSim.ViewModel
         private string kaufenKurs;
         private string kaufenAnzahl;
 
-        private AktieViewModel _selectedAktieViewModel;
+        private static bool aktieNameExists = false;
+
+        private AktieViewModel selectedAktieViewModel;
 
         private double gesamtWert;
         private double aktuellerWert;
@@ -34,7 +37,28 @@ namespace AktienHandelSim.ViewModel
         private double abweichungProzent;
         private string profitLossColour;
 
-        public ObservableCollection<AktieViewModel> AktienUebersicht { get; set; }
+        private PortfolioViewModel portfolioView;
+
+        public PortfolioViewModel PortfolioViewModel
+        {
+            get { return portfolioView; }
+            set { portfolioView = value; }
+        }
+
+        // neu im Portfolio
+        //private static ObservableCollection<AktieViewModel> aktienUebersicht;
+
+        // neu im Portfolio
+        //public ObservableCollection<AktieViewModel> AktienUebersicht
+        //{
+        //    get => aktienUebersicht;
+        //    set
+        //    {
+        //        aktienUebersicht = value;
+        //        RaisePropertyChanged("AktienUebersicht");
+        //    }
+
+        //}
         public string KaufenAbkuerzung
         {
             get
@@ -132,15 +156,15 @@ namespace AktienHandelSim.ViewModel
         }
         public AktieViewModel SelectedAktieViewModel
         {
-            get { return _selectedAktieViewModel; }
+            get { return selectedAktieViewModel; }
             set
             {
-                if (_selectedAktieViewModel == value)
+                if (selectedAktieViewModel == value)
                 {
                     return;
                 }
 
-                _selectedAktieViewModel = value;
+                selectedAktieViewModel = value;
                 RaisePropertyChanged("SelectedAktieViewModel");
             }
         }
@@ -181,6 +205,7 @@ namespace AktienHandelSim.ViewModel
         #endregion
 
         #region AktieKaufen
+
         public ICommand AktieKaufen
         {
             get { return new RelayCommand(AktieKaufenExecute, AktieKaufenCanExecute); }
@@ -192,8 +217,8 @@ namespace AktienHandelSim.ViewModel
 
             // AktienVM erstellen und der Observable zuordnen
 
-            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = KaufenAbkuerzung, AktuellerKurs = Double.Parse(KaufenKurs), Firmenname = KaufenFirmenname, Kaufkurs = Double.Parse(KaufenKurs), AnzahlGekauft = Int32.Parse(KaufenAnzahl), HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = Double.Parse(KaufenKurs), Datum = DateTime.Now.ToString() } } });
-            GesamtWert = CalcGesamtWert(AktienUebersicht);
+            PortfolioViewModel.AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = KaufenAbkuerzung, AktuellerKurs = Double.Parse(KaufenKurs), Firmenname = KaufenFirmenname, Kaufkurs = Double.Parse(KaufenKurs), AnzahlGekauft = Int32.Parse(KaufenAnzahl), HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = Double.Parse(KaufenKurs), Datum = DateTime.Now.ToString() } } });
+            GesamtWert = CalcGesamtWert(PortfolioViewModel.AktienUebersicht);
 
             KaufenAbkuerzung = null;
             KaufenFirmenname = null;
@@ -205,7 +230,7 @@ namespace AktienHandelSim.ViewModel
         private bool AktieKaufenCanExecute()
         {
             bool aktieNotExists = true;
-            foreach (AktieViewModel aktieViewModel in AktienUebersicht)
+            foreach (AktieViewModel aktieViewModel in PortfolioViewModel.AktienUebersicht)
             {
                 if (aktieViewModel.Abkuerzung == KaufenAbkuerzung)
                 {
@@ -246,7 +271,7 @@ namespace AktienHandelSim.ViewModel
 
                 AktieViewModel currentAktie = new AktieViewModel();
 
-                foreach (var aktieViewModel in AktienUebersicht)
+                foreach (var aktieViewModel in PortfolioViewModel.AktienUebersicht)
                 {
                     if (aktieViewModel.Abkuerzung == SelectedAktieViewModel.Abkuerzung)
                     {
@@ -267,10 +292,10 @@ namespace AktienHandelSim.ViewModel
 
                 if (neueAnzahl <= 0)
                 {
-                    AktienUebersicht.Remove(currentAktie);
+                    PortfolioViewModel.AktienUebersicht.Remove(currentAktie);
                 }
 
-                GesamtWert = CalcGesamtWert(AktienUebersicht);
+                GesamtWert = CalcGesamtWert(PortfolioViewModel.AktienUebersicht);
 
             }
             else
@@ -299,7 +324,7 @@ namespace AktienHandelSim.ViewModel
 
         #endregion
 
-        #region Wallet
+        #region Portfolio Calculations
 
         public static double CalcGesamtWert(ObservableCollection<AktieViewModel> aktieViewModels)
         {
@@ -317,7 +342,7 @@ namespace AktienHandelSim.ViewModel
         {
             double wert = 0;
 
-            foreach (AktieViewModel aktieViewModel in AktienUebersicht)
+            foreach (AktieViewModel aktieViewModel in PortfolioViewModel.AktienUebersicht)
             {
                 wert = wert + (aktieViewModel.AktuellerKurs * aktieViewModel.AnzahlGekauft);
             }
@@ -353,21 +378,20 @@ namespace AktienHandelSim.ViewModel
         public MainViewModel()
         {
 
-            AktienUebersicht = new ObservableCollection<AktieViewModel>();
+           PortfolioViewModel= new PortfolioViewModel();
 
-            // Auf "" initialisieren, sonst funktioniert Validierung nicht
-            KaufenAbkuerzung = "";
-            KaufenFirmenname = "";
-
+            // neu im Portfolio
+            //AktienUebersicht = new ObservableCollection<AktieViewModel>();
 
 
-            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = "ABBN", AktuellerKurs = 100, Firmenname = "ABBAlstom", Kaufkurs = 100, AnzahlGekauft = 15, HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = 100, Datum = DateTime.Now.ToString() } } });
-            AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = "SBBN", AktuellerKurs = 200, Firmenname = "SBB-Firma", Kaufkurs = 200, AnzahlGekauft = 12, HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = 200, Datum = DateTime.Now.ToString() } } });
 
-            SelectedAktieViewModel = AktienUebersicht.First();
+            // neu im Portfolio
+            //AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = "ABBN", AktuellerKurs = 100, Firmenname = "ABBAlstom", Kaufkurs = 100, AnzahlGekauft = 15, HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = 100, Datum = DateTime.Now.ToString() } } });
+            //AktienUebersicht.Add(new AktieViewModel() { Abkuerzung = "SBBN", AktuellerKurs = 200, Firmenname = "SBB-Firma", Kaufkurs = 200, AnzahlGekauft = 12, HystoryList = new ObservableCollection<HystoryViewModel>() { new HystoryViewModel() { AktuellerWert = 200, Datum = DateTime.Now.ToString() } } });
 
-            //StartThreadCalcAktienValues();
-            GesamtWert = CalcGesamtWert(AktienUebersicht);
+            SelectedAktieViewModel = PortfolioViewModel.AktienUebersicht.First();
+
+            GesamtWert = CalcGesamtWert(PortfolioViewModel.AktienUebersicht);
             AktuellerWert = CalcAktWert();
             Differenz = CalcDifferenz();
             AbweichungProzent = CalcProzent();
@@ -380,7 +404,7 @@ namespace AktienHandelSim.ViewModel
         {
             ParameterizedThreadStart myDelegate = new ParameterizedThreadStart(CalcNewAktienValue);
             threadCalc = new Thread(myDelegate);
-            threadCalc.Start(AktienUebersicht);              // Thread starten und Referenz auf ObservableCollection mitgeben
+            threadCalc.Start(PortfolioViewModel.AktienUebersicht);              // Thread starten und Referenz auf ObservableCollection mitgeben
         }
 
         private void CalcNewAktienValue(object obj)
@@ -422,7 +446,7 @@ namespace AktienHandelSim.ViewModel
                         #endregion
                     }
 
-                    GesamtWert = CalcGesamtWert(AktienUebersicht);
+                    GesamtWert = CalcGesamtWert(PortfolioViewModel.AktienUebersicht);
                     AktuellerWert = CalcAktWert();
                     Differenz = CalcDifferenz();
                     AbweichungProzent = CalcProzent();
@@ -441,5 +465,31 @@ namespace AktienHandelSim.ViewModel
 
         #endregion
 
+        #region Validierung
+
+        public static bool CallValidation(string value)
+        {
+
+
+            aktieNameExists = false;
+            return CheckValue(value);
+        }
+
+        private static bool CheckValue(string value)
+        {
+            foreach (AktieViewModel aktieViewModel in aktienUebersicht)
+            {
+
+                if (aktieViewModel.Abkuerzung == value)
+                {
+                    aktieNameExists = true;
+                }
+            }
+            return aktieNameExists;
+        }
     }
+
+    #endregion
+
 }
+

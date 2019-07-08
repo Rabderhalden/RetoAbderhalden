@@ -65,9 +65,11 @@
     </Compile>
     <Compile Include="Model\Aktie.cs" />
     <Compile Include="Model\Hystory.cs" />
+    <Compile Include="Validations\AbkuerzungDetailValidator.cs" />
     <Compile Include="ViewModel\AktieViewModel.cs" />
     <Compile Include="ViewModel\HystoryViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
+    <Compile Include="ViewModel\PortfolioViewModel.cs" />
     <Compile Include="View\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -91,6 +93,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

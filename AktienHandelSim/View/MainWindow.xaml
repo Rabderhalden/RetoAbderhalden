@@ -5,11 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AktienHandelSim"
         xmlns:viewModel="clr-namespace:AktienHandelSim.ViewModel"
+        xmlns:local1="clr-namespace:AktienHandelSim.Validations"
         mc:Ignorable="d"
         Title="MainWindow" Height="700" Width="1100" Background="CadetBlue">
     <Window.DataContext>
         <viewModel:MainViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <ControlTemplate x:Key="validationErrorTemplate">
+            <DockPanel>
+                <TextBlock Foreground="Red" 
+                           DockPanel.Dock="Top">! Die Abkürzung existiert bereits !</TextBlock>
+                <AdornedElementPlaceholder 
+                    x:Name="ErrorAdorner"
+                ></AdornedElementPlaceholder>
+            </DockPanel>
+        </ControlTemplate>
+    </Window.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -25,13 +38,18 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Column="1" Grid.Row="1" Background="Aqua" Margin="5,5,5,5">
+
             <Label Content="MEINE AKTIEN:" FontWeight="Bold" FontStyle="Oblique"/>
             <ListView ItemsSource="{Binding AktienUebersicht}" SelectedItem="{Binding SelectedAktieViewModel}" x:Name="Aktienliste" Height="230" Margin="5,5,5,5">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <Label Content="{Binding Abkuerzung}" FontWeight="Bold" />
-                            <Label Content="{Binding AktuellerKurs}"/>
+                            <Label Content="{Binding Abkuerzung}" FontWeight="Bold" Width="60" />
+                            <Label Content="{Binding Firmenname}" Width="80"/>
+                            <Label Content="{Binding AktuellerKurs}" Width="50" HorizontalContentAlignment="Right"/>
+                            <Label Content="CHF"/>
+                            <Label Content="{Binding AnzahlGekauft}" Width="40" HorizontalContentAlignment="Right"/>
+                            <Label Content="STK"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
@@ -63,8 +81,21 @@
             <Label Content="DETAILS:" FontWeight="Bold" FontStyle="Oblique" />
             <StackPanel Orientation="Horizontal">
                 <Label Content="ABKÜRZUNG:" Width="80"/>
-                <TextBox Text="{Binding ElementName=Aktienliste, Path=SelectedItem.Abkuerzung}" Width="120" TextAlignment="Center"/>
+
+                <!--<TextBox Text="{Binding ElementName=Aktienliste, Path=SelectedItem.Abkuerzung}" Width="120" TextAlignment="Center">-->
+                <TextBox Name="AbkuerzungDetail"  Width="120" TextAlignment="Center" Validation.ErrorTemplate="{StaticResource validationErrorTemplate}">
+
+                    <TextBox.Text>
+                        <Binding ElementName="Aktienliste" Path="SelectedItem.Abkuerzung" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local1:AbkuerzungDetailValidator></local1:AbkuerzungDetailValidator>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+
             </StackPanel>
+
             <StackPanel Orientation="Horizontal">
                 <Label Content="NAME:" Width="80"/>
                 <TextBox Text="{Binding ElementName=Aktienliste, Path=SelectedItem.Firmenname}" Width="120" TextAlignment="Center"/>
@@ -115,13 +146,15 @@
             </ListView>
         </StackPanel>
 
-        <StackPanel Grid.Column="2" Grid.Row="2" Orientation="Horizontal">
+        <StackPanel Grid.Column="3" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" >
             <CheckBox Content="Run"
                       x:Name="CheckBoxRun"
                       Command="{Binding SwitchRun}"
-                      IsChecked="False"/>
+                      IsChecked="False"
+                      Background="Yellow"
+                      FontWeight="Bold"/>
         </StackPanel>
-        <StackPanel Grid.Column="1" Grid.Row="2" Background="Blue">
+        <StackPanel Grid.Column="2" Grid.Row="2" Background="Blue">
             <Label Content="Aktien Kaufen:" FontWeight="Bold"/>
             <StackPanel Orientation="Horizontal">
                 <Label Content="Abkuerzung:" Width="80"></Label>
